@@ -46,7 +46,7 @@
             align-items: center;
             background-color: var(--background);
             z-index: 1000;
-            transition: opacity 1s ease-out 0.5s, transform 1s ease-out 0.5s;
+            transition: opacity 1s ease-out;
         }
 
         #logo-transformer {
@@ -55,64 +55,71 @@
             font-weight: 900;
             text-align: center;
             position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transform-style: preserve-3d;
-            perspective: 1000px;
+        }
+
+        .logo-text-wrapper {
+            color: var(--error-red);
+            transition: opacity 0.3s ease-out;
         }
 
         .char {
             display: inline-block;
             opacity: 0;
-            transform: translateY(100%) rotateY(90deg);
-            animation: revealChar 1.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            transform: translateY(50%) rotateX(-90deg);
+            transform-origin: bottom center;
+            animation: revealChar 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
 
         @keyframes revealChar {
             to {
                 opacity: 1;
-                transform: translateY(0) rotateY(0);
+                transform: translateY(0) rotateX(0);
             }
         }
-
-        .strikethrough-word {
-            position: relative;
-            color: var(--error-red);
-            transition: color 0.5s ease;
-        }
-
-        .strikethrough-word::after {
-            content: '';
+        
+        .animated-line {
             position: absolute;
-            top: 55%;
-            left: -10%;
-            width: 120%;
             height: clamp(6px, 1.5vw, 12px);
+            width: 120%;
+            left: -10%;
             background: var(--gradient);
             transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.6s cubic-bezier(0.86, 0, 0.07, 1);
         }
 
-        .strikethrough-word.strike::after {
+        .animated-line.strike-in {
+            top: 55%;
+            transform-origin: left;
+            transition: transform 0.6s cubic-bezier(0.86, 0, 0.07, 1);
             transform: scaleX(1);
         }
+
+        .animated-line.strike-out {
+            top: 55%;
+            transform-origin: right;
+            transition: transform 0.6s cubic-bezier(0.86, 0, 0.07, 1);
+            transform: scaleX(0);
+        }
+
+        .animated-line.underline-in {
+            top: 110%; /* Position below text */
+            transform-origin: left;
+            transition: transform 0.7s cubic-bezier(0.86, 0, 0.07, 1);
+            transform: scaleX(1);
+        }
+
 
         /* --- STAGE 2: MAIN CONTENT --- */
         #main-content {
             opacity: 0;
-            transform: scale(0.95) translateY(50px);
-            filter: blur(20px);
-            transition: opacity 1.5s cubic-bezier(0.19, 1, 0.22, 1), transform 1.5s cubic-bezier(0.19, 1, 0.22, 1), filter 1.5s cubic-bezier(0.19, 1, 0.22, 1);
+            transform: translateY(150px);
+            transition: opacity 1.5s cubic-bezier(0.19, 1, 0.22, 1) 0.2s, transform 1.5s cubic-bezier(0.19, 1, 0.22, 1) 0.2s;
             position: relative;
             z-index: 1;
         }
         
         #main-content.visible {
             opacity: 1;
-            transform: scale(1) translateY(0);
-            filter: blur(0);
+            transform: translateY(0);
         }
 
         .container {
@@ -340,7 +347,8 @@
 
     <div id="logo-animation-container">
         <div id="logo-transformer">
-            <span class="strikethrough-word"></span>
+            <div class="logo-text-wrapper"></div>
+            <span class="animated-line"></span>
         </div>
     </div>
 
@@ -402,81 +410,89 @@
         document.addEventListener('DOMContentLoaded', () => {
             const animationContainer = document.getElementById('logo-animation-container');
             const mainContent = document.getElementById('main-content');
-            const strikethroughWordEl = document.querySelector('.strikethrough-word');
             const logoTransformer = document.getElementById('logo-transformer');
+            const textWrapper = logoTransformer.querySelector('.logo-text-wrapper');
+            const animatedLine = logoTransformer.querySelector('.animated-line');
 
-            const animateLogo = () => {
-                const initialWord = "GAY";
-                const finalWord = "G-AI";
-                
-                // 1. Initial "GAY" character reveal
-                initialWord.split('').forEach((char, index) => {
+            const initialWord = "GAY";
+            const finalWord = "G-AI";
+
+            const spellOut = (word, container) => {
+                container.innerHTML = '';
+                const chars = word.split('');
+                chars.forEach((char, index) => {
                     const span = document.createElement('span');
                     span.className = 'char';
                     span.textContent = char;
-                    span.style.animationDelay = `${index * 100}ms`;
-                    strikethroughWordEl.appendChild(span);
+                    span.style.animationDelay = `${index * 120}ms`;
+                    container.appendChild(span);
                 });
-
-                // 2. Strikethrough
-                setTimeout(() => {
-                    strikethroughWordEl.classList.add('strike');
-                }, 1000);
-
-                // 3. Transform to "G-AI"
-                setTimeout(() => {
-                    // Fade out old characters
-                    strikethroughWordEl.style.transition = 'opacity 0.5s ease-out';
-                    strikethroughWordEl.style.opacity = '0';
-
-                    setTimeout(() => {
-                        strikethroughWordEl.innerHTML = '';
-                        strikethroughWordEl.style.color = 'transparent';
-                        strikethroughWordEl.style.background = 'var(--gradient)';
-                        strikethroughWordEl.style['-webkit-background-clip'] = 'text';
-                        strikethroughWordEl.style['-webkit-text-fill-color'] = 'transparent';
-                        
-                        // Reveal "G-AI" with a more dynamic effect
-                        finalWord.split('').forEach((char, index) => {
-                            const span = document.createElement('span');
-                            span.className = 'char';
-                            span.textContent = char;
-                            span.style.animationDelay = `${index * 100}ms`;
-                            strikethroughWordEl.appendChild(span);
-                        });
-
-                        strikethroughWordEl.style.opacity = '1';
-
-                        // 4. Shrink and fade out logo, preparing for main content
-                        setTimeout(() => {
-                            logoTransformer.style.transition = 'transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.8s ease-out';
-                            logoTransformer.style.transform = 'scale(0.5)';
-                            logoTransformer.style.opacity = '0';
-                            finalizeAnimation();
-                        }, 1200);
-
-                    }, 500);
-
-                }, 1800);
             };
 
-            const finalizeAnimation = () => {
+            const runAnimation = () => {
+                // 1. Spell initial word "GAY"
+                spellOut(initialWord, textWrapper);
+
+                // 2. Line appears from the left (strikethrough)
+                setTimeout(() => {
+                    animatedLine.classList.add('strike-in');
+                }, 800);
+
+                // 3. Line disappears to the right
+                setTimeout(() => {
+                    animatedLine.classList.remove('strike-in');
+                    animatedLine.classList.add('strike-out');
+                }, 1800);
+
+                // 4. Fade out old text and spell new text "G-AI"
+                setTimeout(() => {
+                    textWrapper.style.opacity = '0';
+                    setTimeout(() => {
+                        textWrapper.style.color = 'transparent';
+                        textWrapper.style.background = 'var(--gradient)';
+                        textWrapper.style.webkitBackgroundClip = 'text';
+                        spellOut(finalWord, textWrapper);
+                        textWrapper.style.opacity = '1';
+                    }, 300);
+                }, 2100);
+
+                // 5. Line comes back as an underline
+                setTimeout(() => {
+                    animatedLine.classList.remove('strike-out');
+                    animatedLine.classList.add('underline-in');
+                }, 2900);
+                
+                // 6. Logo with underline scales down and up
+                setTimeout(() => {
+                    logoTransformer.style.transition = 'transform 1s cubic-bezier(0.68, -0.6, 0.32, 1.6)';
+                    logoTransformer.style.transform = 'scale(0.9)';
+
+                    setTimeout(() => {
+                        logoTransformer.style.transform = 'scale(1)';
+                    }, 500);
+                }, 3700);
+
+
+                // 7. Final transition: fade out logo, bring in content from bottom
                 setTimeout(() => {
                     animationContainer.style.opacity = '0';
-                    animationContainer.style.pointerEvents = 'none'; // Prevents interaction after it's gone
+                    animationContainer.style.pointerEvents = 'none';
                     mainContent.classList.add('visible');
                     
                     setTimeout(() => {
                         animationContainer.style.display = 'none';
                     }, 1000);
                     
+                    // Initialize other functionalities
                     startCountdown();
                     setupScrollAnimations();
                     setupScrollIndicator();
-                }, 500);
+                }, 4000);
             };
 
-            animateLogo();
+            runAnimation();
+            
+            // --- All other functions (countdown, scroll, etc.) remain the same ---
 
             const startCountdown = () => {
                 const launchDate = new Date('2025-07-23T17:00:00Z');
@@ -551,7 +567,7 @@
                             observer.unobserve(entry.target);
                         }
                     });
-                }, { threshold: 0.1 }); // Trigger a bit earlier
+                }, { threshold: 0.1 });
 
                 sections.forEach(section => observer.observe(section));
             };
