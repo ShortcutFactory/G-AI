@@ -36,20 +36,16 @@
 
         /* --- STAGE 1: FULLSCREEN LOGO ANIMATION --- */
         #logo-animation-container {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; justify-content: center; align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             background-color: var(--background);
             z-index: 1000;
-            transition: opacity 1s ease-out 0.5s, transform 1s ease-out 0.5s;
-        }
-
-        @keyframes crazyTextGlitch {
-            0% { transform: scale(1) skew(0) rotate(0); opacity: 1; text-shadow: 0 0 0 transparent; }
-            20% { transform: scale(1.1) skew(5deg, -5deg) rotate(2deg); opacity: 0.8; text-shadow: 5px 5px 0 var(--accent-cyan), -5px -5px 0 var(--accent-purple); }
-            40% { transform: scale(0.9) skew(-5deg, 5deg) rotate(-2deg); opacity: 1; text-shadow: -5px 5px 0 var(--accent-cyan), 5px -5px 0 var(--accent-purple); }
-            60% { transform: scale(1.2) skew(8deg, -2deg) rotate(5deg); opacity: 0.7; color: var(--accent-cyan); text-shadow: 10px 0 10px var(--accent-purple); }
-            80% { transform: scale(1) skew(0) rotate(0); opacity: 1; color: var(--error-red); text-shadow: 0 0 0 transparent; }
-            100% { transform: scale(1) skew(0) rotate(0); opacity: 1; text-shadow: 0 0 0 transparent; }
         }
 
         #logo-transformer {
@@ -58,40 +54,40 @@
             font-weight: 900;
             text-align: center;
             position: relative;
-            animation: crazyTextGlitch 0.7s cubic-bezier(0.65, 0, 0.35, 1) 0.5s 1;
+            display: flex; /* Use flexbox for character alignment */
+            color: var(--text-dark);
         }
 
-        #logo-transformer .strikethrough-word {
-            position: relative;
-            color: var(--error-red);
+        #logo-transformer .char {
+            opacity: 0;
+            transform: translateY(50px) scale(0.8) skewY(10deg);
+            filter: blur(10px);
+            position: relative; /* Needed for z-index */
         }
-
-        #logo-transformer .strikethrough-word::after {
-            content: ''; position: absolute; top: 55%; left: -10%;
-            width: 120%; height: clamp(6px, 1.5vw, 12px);
+        
+        #logo-transformer .strikethrough-line {
+            position: absolute;
+            top: 55%;
+            left: -10%;
+            width: 120%;
+            height: clamp(6px, 1.5vw, 12px);
             background: var(--gradient);
-            transform: scaleX(0); transform-origin: left;
-            transition: transform 0.4s cubic-bezier(0.86, 0, 0.07, 1);
+            transform: scaleX(0);
+            transform-origin: left;
+            z-index: 10;
         }
 
-        #logo-transformer .strikethrough-word.strike::after {
-            transform: scaleX(1);
-        }
 
         /* --- STAGE 2: MAIN CONTENT --- */
         #main-content {
             opacity: 0;
-            transform: scale(0.9);
-            filter: blur(15px);
-            transition: opacity 1.2s ease-in, transform 1.2s ease-in, filter 1.2s ease-in;
+            transition: opacity 1.2s ease-in;
             position: relative;
             z-index: 1;
         }
         
         #main-content.visible {
             opacity: 1;
-            transform: scale(1);
-            filter: blur(0);
         }
 
         .container {
@@ -152,7 +148,6 @@
 
         .scroll-down-indicator {
             position: absolute;
-            /* UPDATED: Lowered from 30px to 20px to prevent overlap */
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
@@ -312,7 +307,7 @@
 <body>
 
     <div id="logo-animation-container">
-        <div id="logo-transformer"><span class="strikethrough-word">GAY</span></div>
+        <div id="logo-transformer">GAY</div>
     </div>
 
     <div id="main-content">
@@ -368,51 +363,102 @@
             </section>
         </main>
     </div>
-
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const animationContainer = document.getElementById('logo-animation-container');
             const mainContent = document.getElementById('main-content');
-            const strikethroughWord = document.querySelector('.strikethrough-word');
             const logoTransformer = document.getElementById('logo-transformer');
 
+            // --- Enhanced Animation using GSAP ---
+
+            const initialText = logoTransformer.textContent.trim();
+            logoTransformer.innerHTML = ''; // Clear the initial text
+
+            // Wrap each character in a span for individual animation
+            initialText.split('').forEach(char => {
+                const span = document.createElement('span');
+                span.className = 'char';
+                span.textContent = char;
+                logoTransformer.appendChild(span);
+            });
+            
+            // Create and append the strikethrough line
+            const strikeLine = document.createElement('div');
+            strikeLine.className = 'strikethrough-line';
+            logoTransformer.appendChild(strikeLine);
+
             const animateLogo = () => {
-                setTimeout(() => {
-                    strikethroughWord.classList.add('strike');
-                    setTimeout(() => {
-                        logoTransformer.style.transition = 'all 0.5s ease';
-                        logoTransformer.style.transform = 'scale(0.8)';
-                        logoTransformer.innerHTML = `<span style="background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">G-AI</span>`;
-                        logoTransformer.style.transform = 'scale(1.2)';
-                        
-                        setTimeout(() => {
-                            logoTransformer.style.transform = 'scale(0)';
-                            finalizeAnimation();
-                        }, 800);
+                // Use GSAP's timeline for precise sequencing
+                const tl = gsap.timeline({
+                    onComplete: revealMainContent
+                });
 
-                    }, 700);
-                }, 1000);
+                // 1. Reveal "GAY" with a professional stagger effect
+                tl.to('.char', {
+                    opacity: 1,
+                    y: 0,
+                    scale: 1,
+                    skewY: 0,
+                    filter: 'blur(0px)',
+                    stagger: 0.1,
+                    ease: 'power4.out',
+                    duration: 1.2
+                }, 0.5) // Start after a 0.5s delay
+                
+                // 2. Animate the strikethrough line
+                .to('.strikethrough-line', {
+                    scaleX: 1,
+                    duration: 0.5,
+                    ease: 'power3.inOut'
+                }, "-=1.0") // Overlap with the text reveal
+                
+                // 3. Simultaneously fade out the strikethrough line and characters
+                .to(['.char', '.strikethrough-line'], {
+                    opacity: 0,
+                    y: -40,
+                    stagger: 0.08,
+                    ease: 'power4.in',
+                    duration: 0.8
+                }, "+=0.3") // Add a slight pause
+                
+                // 4. Transform to the final "G-AI" logo
+                .call(() => {
+                    logoTransformer.innerHTML = `<span style="background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; opacity: 0; transform: scale(0.8);">G-AI</span>`;
+                })
+                .to(logoTransformer.children[0], {
+                    opacity: 1,
+                    scale: 1,
+                    duration: 1,
+                    ease: 'power4.out'
+                })
+
+                // 5. Fade out the entire animation container
+                .to(animationContainer, {
+                    opacity: 0,
+                    duration: 1.2,
+                    ease: 'power2.inOut',
+                    onComplete: () => {
+                        animationContainer.style.display = 'none';
+                    }
+                }, "+=0.5"); // Add a final pause
             };
-
-            const finalizeAnimation = () => {
-                setTimeout(revealMainContent, 500);
-            };
-
+            
             const revealMainContent = () => {
-                animationContainer.style.opacity = '0';
-                animationContainer.style.transform = 'scale(2)';
                 mainContent.classList.add('visible');
-                setTimeout(() => animationContainer.style.display = 'none', 1000);
+                // Start other scripts after the main animation is done
                 startCountdown();
                 setupScrollAnimations();
                 setupScrollIndicator();
             };
 
+            // --- Start the sequence ---
             animateLogo();
 
+            // --- Original supporting scripts ---
             const startCountdown = () => {
                 const launchDate = new Date('2025-07-23T17:00:00Z');
-
                 const timerEls = {
                     days: document.getElementById('days'), hours: document.getElementById('hours'),
                     minutes: document.getElementById('minutes'), seconds: document.getElementById('seconds')
@@ -420,10 +466,7 @@
                 
                 const animateTick = (el) => {
                     el.classList.add('tick');
-                    setTimeout(() => {
-                        el.classList.remove('tick');
-                        el.style.color = '';
-                    }, 200);
+                    setTimeout(() => el.classList.remove('tick'), 200);
                 };
 
                 const interval = setInterval(() => {
