@@ -46,6 +46,7 @@
             align-items: center;
             background-color: var(--background);
             z-index: 1000;
+            transition: opacity 1s ease-out 0.5s, transform 1s ease-out 0.5s;
         }
 
         #logo-transformer {
@@ -54,18 +55,35 @@
             font-weight: 900;
             text-align: center;
             position: relative;
-            display: flex; /* Use flexbox for character alignment */
-            color: var(--text-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform-style: preserve-3d;
+            perspective: 1000px;
         }
 
-        #logo-transformer .char {
+        .char {
+            display: inline-block;
             opacity: 0;
-            transform: translateY(50px) scale(0.8) skewY(10deg);
-            filter: blur(10px);
-            position: relative; /* Needed for z-index */
+            transform: translateY(100%) rotateY(90deg);
+            animation: revealChar 1.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
-        
-        #logo-transformer .strikethrough-line {
+
+        @keyframes revealChar {
+            to {
+                opacity: 1;
+                transform: translateY(0) rotateY(0);
+            }
+        }
+
+        .strikethrough-word {
+            position: relative;
+            color: var(--error-red);
+            transition: color 0.5s ease;
+        }
+
+        .strikethrough-word::after {
+            content: '';
             position: absolute;
             top: 55%;
             left: -10%;
@@ -74,20 +92,27 @@
             background: var(--gradient);
             transform: scaleX(0);
             transform-origin: left;
-            z-index: 10;
+            transition: transform 0.6s cubic-bezier(0.86, 0, 0.07, 1);
         }
 
+        .strikethrough-word.strike::after {
+            transform: scaleX(1);
+        }
 
         /* --- STAGE 2: MAIN CONTENT --- */
         #main-content {
             opacity: 0;
-            transition: opacity 1.2s ease-in;
+            transform: scale(0.95) translateY(50px);
+            filter: blur(20px);
+            transition: opacity 1.5s cubic-bezier(0.19, 1, 0.22, 1), transform 1.5s cubic-bezier(0.19, 1, 0.22, 1), filter 1.5s cubic-bezier(0.19, 1, 0.22, 1);
             position: relative;
             z-index: 1;
         }
         
         #main-content.visible {
             opacity: 1;
+            transform: scale(1) translateY(0);
+            filter: blur(0);
         }
 
         .container {
@@ -120,9 +145,10 @@
             transform: translateY(30px);
             animation: fadeInUp 1s forwards;
         }
-        .tagline { animation-delay: 0.2s; }
-        .description { animation-delay: 0.4s; }
-        #countdown-container { animation-delay: 0.6s; }
+        .final-logo { animation-delay: 0.1s; }
+        .tagline { animation-delay: 0.3s; }
+        .description { animation-delay: 0.5s; }
+        #countdown-container { animation-delay: 0.7s; }
 
         @keyframes fadeInUp {
             to {
@@ -157,8 +183,16 @@
             gap: 15px;
             transition: opacity 0.4s ease;
             cursor: pointer;
-            opacity: 1;
+            opacity: 0;
+            animation: fadeIn 1s forwards 2s;
         }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
         .scroll-down-indicator.hidden { opacity: 0; }
         .scroll-down-indicator p {
             font-size: 0.8rem;
@@ -192,11 +226,10 @@
         .content-section {
             padding: 140px 0;
             opacity: 0;
-            transform: translateY(150px) rotateX(-90deg);
-            transform-origin: top center;
-            transition: opacity 1s ease-out, transform 1s cubic-bezier(0.165, 0.84, 0.44, 1);
+            transform: translateY(150px);
+            transition: opacity 1.2s cubic-bezier(0.165, 0.84, 0.44, 1), transform 1.2s cubic-bezier(0.165, 0.84, 0.44, 1);
         }
-        .content-section.is-visible { opacity: 1; transform: translateY(0) rotateX(0); }
+        .content-section.is-visible { opacity: 1; transform: translateY(0); }
         
         .section-title {
             font-weight: 700;
@@ -209,7 +242,6 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 30px;
-            perspective: 1500px;
         }
         
         .teaser-card {
@@ -221,8 +253,8 @@
             transition: transform 0.5s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
         }
         .teaser-card:hover {
-            transform: translateY(-15px) rotateY(15deg) rotateX(5deg);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+            transform: translateY(-15px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
         }
         .teaser-card .icon {
             display: inline-flex;
@@ -241,7 +273,7 @@
             height: 32px;
         }
         .teaser-card:hover .icon {
-            transform: scale(1.2) rotate(360deg);
+            transform: scale(1.1) rotate(15deg);
         }
         .teaser-card h3 {
             font-size: 1.2rem;
@@ -271,10 +303,10 @@
             font-size: clamp(2.5rem, 8vw, 4.5rem);
             font-weight: 900;
             line-height: 1;
-            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s ease;
         }
         .timer-unit span.tick {
-            transform: scale(1.15);
+            transform: scale(1.1);
             color: var(--accent-cyan);
         }
         .timer-unit p {
@@ -307,7 +339,9 @@
 <body>
 
     <div id="logo-animation-container">
-        <div id="logo-transformer">GAY</div>
+        <div id="logo-transformer">
+            <span class="strikethrough-word"></span>
+        </div>
     </div>
 
     <div id="main-content">
@@ -363,110 +397,103 @@
             </section>
         </main>
     </div>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const animationContainer = document.getElementById('logo-animation-container');
             const mainContent = document.getElementById('main-content');
+            const strikethroughWordEl = document.querySelector('.strikethrough-word');
             const logoTransformer = document.getElementById('logo-transformer');
 
-            // --- Enhanced Animation using GSAP ---
-
-            const initialText = logoTransformer.textContent.trim();
-            logoTransformer.innerHTML = ''; // Clear the initial text
-
-            // Wrap each character in a span for individual animation
-            initialText.split('').forEach(char => {
-                const span = document.createElement('span');
-                span.className = 'char';
-                span.textContent = char;
-                logoTransformer.appendChild(span);
-            });
-            
-            // Create and append the strikethrough line
-            const strikeLine = document.createElement('div');
-            strikeLine.className = 'strikethrough-line';
-            logoTransformer.appendChild(strikeLine);
-
             const animateLogo = () => {
-                // Use GSAP's timeline for precise sequencing
-                const tl = gsap.timeline({
-                    onComplete: revealMainContent
+                const initialWord = "GAY";
+                const finalWord = "G-AI";
+                
+                // 1. Initial "GAY" character reveal
+                initialWord.split('').forEach((char, index) => {
+                    const span = document.createElement('span');
+                    span.className = 'char';
+                    span.textContent = char;
+                    span.style.animationDelay = `${index * 100}ms`;
+                    strikethroughWordEl.appendChild(span);
                 });
 
-                // 1. Reveal "GAY" with a professional stagger effect
-                tl.to('.char', {
-                    opacity: 1,
-                    y: 0,
-                    scale: 1,
-                    skewY: 0,
-                    filter: 'blur(0px)',
-                    stagger: 0.1,
-                    ease: 'power4.out',
-                    duration: 1.2
-                }, 0.5) // Start after a 0.5s delay
-                
-                // 2. Animate the strikethrough line
-                .to('.strikethrough-line', {
-                    scaleX: 1,
-                    duration: 0.5,
-                    ease: 'power3.inOut'
-                }, "-=1.0") // Overlap with the text reveal
-                
-                // 3. Simultaneously fade out the strikethrough line and characters
-                .to(['.char', '.strikethrough-line'], {
-                    opacity: 0,
-                    y: -40,
-                    stagger: 0.08,
-                    ease: 'power4.in',
-                    duration: 0.8
-                }, "+=0.3") // Add a slight pause
-                
-                // 4. Transform to the final "G-AI" logo
-                .call(() => {
-                    logoTransformer.innerHTML = `<span style="background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; opacity: 0; transform: scale(0.8);">G-AI</span>`;
-                })
-                .to(logoTransformer.children[0], {
-                    opacity: 1,
-                    scale: 1,
-                    duration: 1,
-                    ease: 'power4.out'
-                })
+                // 2. Strikethrough
+                setTimeout(() => {
+                    strikethroughWordEl.classList.add('strike');
+                }, 1000);
 
-                // 5. Fade out the entire animation container
-                .to(animationContainer, {
-                    opacity: 0,
-                    duration: 1.2,
-                    ease: 'power2.inOut',
-                    onComplete: () => {
+                // 3. Transform to "G-AI"
+                setTimeout(() => {
+                    // Fade out old characters
+                    strikethroughWordEl.style.transition = 'opacity 0.5s ease-out';
+                    strikethroughWordEl.style.opacity = '0';
+
+                    setTimeout(() => {
+                        strikethroughWordEl.innerHTML = '';
+                        strikethroughWordEl.style.color = 'transparent';
+                        strikethroughWordEl.style.background = 'var(--gradient)';
+                        strikethroughWordEl.style['-webkit-background-clip'] = 'text';
+                        strikethroughWordEl.style['-webkit-text-fill-color'] = 'transparent';
+                        
+                        // Reveal "G-AI" with a more dynamic effect
+                        finalWord.split('').forEach((char, index) => {
+                            const span = document.createElement('span');
+                            span.className = 'char';
+                            span.textContent = char;
+                            span.style.animationDelay = `${index * 100}ms`;
+                            strikethroughWordEl.appendChild(span);
+                        });
+
+                        strikethroughWordEl.style.opacity = '1';
+
+                        // 4. Shrink and fade out logo, preparing for main content
+                        setTimeout(() => {
+                            logoTransformer.style.transition = 'transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.8s ease-out';
+                            logoTransformer.style.transform = 'scale(0.5)';
+                            logoTransformer.style.opacity = '0';
+                            finalizeAnimation();
+                        }, 1200);
+
+                    }, 500);
+
+                }, 1800);
+            };
+
+            const finalizeAnimation = () => {
+                setTimeout(() => {
+                    animationContainer.style.opacity = '0';
+                    animationContainer.style.pointerEvents = 'none'; // Prevents interaction after it's gone
+                    mainContent.classList.add('visible');
+                    
+                    setTimeout(() => {
                         animationContainer.style.display = 'none';
-                    }
-                }, "+=0.5"); // Add a final pause
-            };
-            
-            const revealMainContent = () => {
-                mainContent.classList.add('visible');
-                // Start other scripts after the main animation is done
-                startCountdown();
-                setupScrollAnimations();
-                setupScrollIndicator();
+                    }, 1000);
+                    
+                    startCountdown();
+                    setupScrollAnimations();
+                    setupScrollIndicator();
+                }, 500);
             };
 
-            // --- Start the sequence ---
             animateLogo();
 
-            // --- Original supporting scripts ---
             const startCountdown = () => {
                 const launchDate = new Date('2025-07-23T17:00:00Z');
+
                 const timerEls = {
-                    days: document.getElementById('days'), hours: document.getElementById('hours'),
-                    minutes: document.getElementById('minutes'), seconds: document.getElementById('seconds')
+                    days: document.getElementById('days'),
+                    hours: document.getElementById('hours'),
+                    minutes: document.getElementById('minutes'),
+                    seconds: document.getElementById('seconds')
                 };
-                
+
                 const animateTick = (el) => {
+                    if (!el) return;
                     el.classList.add('tick');
-                    setTimeout(() => el.classList.remove('tick'), 200);
+                    setTimeout(() => {
+                        el.classList.remove('tick');
+                    }, 200);
                 };
 
                 const interval = setInterval(() => {
@@ -475,7 +502,10 @@
 
                     if (distance < 0) {
                         clearInterval(interval);
-                        document.getElementById('countdown-container').innerHTML = `<h2 class="countdown-title">THE TRANSFORMATION HAS BEGUN</h2>`;
+                        const countdownContainer = document.getElementById('countdown-container');
+                        if (countdownContainer) {
+                           countdownContainer.innerHTML = `<h2 class="countdown-title">THE TRANSFORMATION HAS BEGUN</h2>`;
+                        }
                         return;
                     }
 
@@ -485,23 +515,26 @@
                     const minutes = format(Math.floor((distance % 3600000) / 60000));
                     const seconds = format(Math.floor((distance % 60000) / 1000));
                     
-                    if(timerEls.seconds.textContent !== seconds) animateTick(timerEls.seconds);
-                    if(timerEls.minutes.textContent !== minutes) animateTick(timerEls.minutes);
-                    if(timerEls.hours.textContent !== hours) animateTick(timerEls.hours);
-                    if(timerEls.days.textContent !== days) animateTick(timerEls.days);
+                    if (timerEls.seconds && timerEls.seconds.textContent !== seconds) animateTick(timerEls.seconds);
+                    if (timerEls.minutes && timerEls.minutes.textContent !== minutes) animateTick(timerEls.minutes);
+                    if (timerEls.hours && timerEls.hours.textContent !== hours) animateTick(timerEls.hours);
+                    if (timerEls.days && timerEls.days.textContent !== days) animateTick(timerEls.days);
 
-                    timerEls.days.textContent = days;
-                    timerEls.hours.textContent = hours;
-                    timerEls.minutes.textContent = minutes;
-                    timerEls.seconds.textContent = seconds;
+                    if (timerEls.days) timerEls.days.textContent = days;
+                    if (timerEls.hours) timerEls.hours.textContent = hours;
+                    if (timerEls.minutes) timerEls.minutes.textContent = minutes;
+                    if (timerEls.seconds) timerEls.seconds.textContent = seconds;
                 }, 1000);
             };
 
             const setupScrollIndicator = () => {
                 const indicator = document.querySelector('.scroll-down-indicator');
+                if (!indicator) return;
+
                 window.addEventListener('scroll', () => {
                     indicator.classList.toggle('hidden', window.scrollY > 50);
                 }, { passive: true });
+
                 indicator.addEventListener('click', () => {
                     document.getElementById('teaser-section').scrollIntoView({ behavior: 'smooth' });
                 });
@@ -509,6 +542,8 @@
 
             const setupScrollAnimations = () => {
                 const sections = document.querySelectorAll('.content-section');
+                if (sections.length === 0) return;
+
                 const observer = new IntersectionObserver(entries => {
                     entries.forEach(entry => {
                         if (entry.isIntersecting) {
@@ -516,7 +551,8 @@
                             observer.unobserve(entry.target);
                         }
                     });
-                }, { threshold: 0.2 });
+                }, { threshold: 0.1 }); // Trigger a bit earlier
+
                 sections.forEach(section => observer.observe(section));
             };
         });
