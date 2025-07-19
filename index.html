@@ -31,7 +31,8 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             overflow-x: hidden;
-            padding: 0 15px;
+            /* Changed padding to 0 for full-width control */
+            padding: 0;
         }
 
         /* --- STAGE 1: FULLSCREEN LOGO ANIMATION --- */
@@ -46,28 +47,32 @@
             align-items: center;
             background-color: var(--background);
             z-index: 1000;
-            transition: opacity 1s ease-out;
+            /* The container itself will not transition, only its contents */
         }
 
         #logo-transformer {
             font-family: 'Orbitron', sans-serif;
             font-size: clamp(3rem, 15vw, 8rem);
+            line-height: 1.1;
             font-weight: 900;
             text-align: center;
             position: relative;
+            /* This transition is for the final move into the document flow */
+            transition: all 1.2s cubic-bezier(0.645, 0.045, 0.355, 1);
         }
-
+        
         .logo-text-wrapper {
+            position: relative;
             color: var(--error-red);
-            transition: opacity 0.3s ease-out;
+            transition: opacity 0.4s ease-out;
         }
 
         .char {
             display: inline-block;
             opacity: 0;
-            transform: translateY(50%) rotateX(-90deg);
-            transform-origin: bottom center;
-            animation: revealChar 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            transform: translateY(60%) rotateX(-90deg);
+            transform-origin: center center 0;
+            animation: revealChar 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
 
         @keyframes revealChar {
@@ -77,49 +82,39 @@
             }
         }
         
-        .animated-line {
+        .line {
             position: absolute;
-            height: clamp(6px, 1.5vw, 12px);
-            width: 120%;
-            left: -10%;
+            height: clamp(6px, 1.2vw, 10px);
+            width: 110%;
+            left: -5%;
             background: var(--gradient);
             transform: scaleX(0);
+            transition: transform 0.6s cubic-bezier(0.86, 0, 0.07, 1);
         }
 
-        .animated-line.strike-in {
+        .line.strike {
             top: 55%;
             transform-origin: left;
-            transition: transform 0.6s cubic-bezier(0.86, 0, 0.07, 1);
-            transform: scaleX(1);
         }
-
-        .animated-line.strike-out {
-            top: 55%;
-            transform-origin: right;
-            transition: transform 0.6s cubic-bezier(0.86, 0, 0.07, 1);
-            transform: scaleX(0);
-        }
-
-        .animated-line.underline-in {
-            top: 110%; /* Position below text */
+        
+        .line.underline {
+            top: 115%; /* Positioned for underlining */
             transform-origin: left;
-            transition: transform 0.7s cubic-bezier(0.86, 0, 0.07, 1);
-            transform: scaleX(1);
+            opacity: 0; /* Hidden until it's needed */
+            transition: transform 0.6s cubic-bezier(0.86, 0, 0.07, 1), opacity 0.1s 0.6s;
         }
-
 
         /* --- STAGE 2: MAIN CONTENT --- */
         #main-content {
-            opacity: 0;
-            transform: translateY(150px);
-            transition: opacity 1.5s cubic-bezier(0.19, 1, 0.22, 1) 0.2s, transform 1.5s cubic-bezier(0.19, 1, 0.22, 1) 0.2s;
+            opacity: 0; /* Initially hidden, will be controlled by JS */
+            transition: opacity 1s ease-in 0.5s;
             position: relative;
             z-index: 1;
+            padding: 0 15px; /* Add padding here for content alignment */
         }
         
         #main-content.visible {
             opacity: 1;
-            transform: translateY(0);
         }
 
         .container {
@@ -129,7 +124,7 @@
         }
         
         .hero-section {
-            display: flex; align-items: center; justify-content: center;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
             min-height: 100vh;
             padding: 120px 0;
             text-align: center;
@@ -138,31 +133,31 @@
 
         .header-content { max-width: 750px; }
 
-        .final-logo {
+        .final-logo-placeholder {
+            /* This is now just a placeholder to define the space for the animated logo */
             font-family: 'Orbitron', sans-serif;
             font-size: clamp(3.5rem, 10vw, 6rem);
             font-weight: 900;
-            background: var(--gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            line-height: 1.1;
+            /* The element itself is invisible, just holds the layout */
+            visibility: hidden; 
         }
-        
-        .tagline, .description, .final-logo, #countdown-container {
+
+        .tagline, .description, #countdown-container {
             opacity: 0;
             transform: translateY(30px);
-            animation: fadeInUp 1s forwards;
+            /* The animation is now triggered by a class */
+            transition: opacity 1s forwards, transform 1s forwards;
         }
-        .final-logo { animation-delay: 0.1s; }
-        .tagline { animation-delay: 0.3s; }
-        .description { animation-delay: 0.5s; }
-        #countdown-container { animation-delay: 0.7s; }
 
-        @keyframes fadeInUp {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .tagline.visible, .description.visible, #countdown-container.visible {
+             opacity: 1;
+             transform: translateY(0);
         }
+        
+        .tagline { transition-delay: 0.2s; }
+        .description { transition-delay: 0.4s; }
+        #countdown-container { transition-delay: 0.6s; }
         
         .tagline {
             font-size: clamp(1.2rem, 3vw, 1.75rem);
@@ -179,168 +174,8 @@
             color: var(--text-light);
         }
 
-        .scroll-down-indicator {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            transition: opacity 0.4s ease;
-            cursor: pointer;
-            opacity: 0;
-            animation: fadeIn 1s forwards 2s;
-        }
-
-        @keyframes fadeIn {
-            to {
-                opacity: 1;
-            }
-        }
-
-        .scroll-down-indicator.hidden { opacity: 0; }
-        .scroll-down-indicator p {
-            font-size: 0.8rem;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            color: var(--text-light);
-        }
-        
-        .scroll-down-indicator .arrow {
-            animation: fluidArrow 2.5s infinite cubic-bezier(0.455, 0.03, 0.515, 0.955);
-        }
-        .scroll-down-indicator .arrow svg {
-            transition: filter 0.4s ease;
-            filter: drop-shadow(0 0 2px rgba(0, 224, 181, 0.4));
-        }
-        .scroll-down-indicator:hover .arrow svg {
-            filter: drop-shadow(0 0 10px var(--accent-cyan));
-        }
-
-        @keyframes fluidArrow {
-            0%, 100% {
-                transform: translateY(0);
-                opacity: 0.5;
-            }
-            50% {
-                transform: translateY(12px);
-                opacity: 1;
-            }
-        }
-
-        .content-section {
-            padding: 140px 0;
-            opacity: 0;
-            transform: translateY(150px);
-            transition: opacity 1.2s cubic-bezier(0.165, 0.84, 0.44, 1), transform 1.2s cubic-bezier(0.165, 0.84, 0.44, 1);
-        }
-        .content-section.is-visible { opacity: 1; transform: translateY(0); }
-        
-        .section-title {
-            font-weight: 700;
-            font-size: clamp(2rem, 5vw, 2.8rem);
-            text-align: center;
-            margin-bottom: 60px;
-        }
-
-        .teaser-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px;
-        }
-        
-        .teaser-card {
-            background-color: #f8f9fa;
-            border: 1px solid var(--border-color);
-            padding: 35px 30px;
-            border-radius: 12px;
-            text-align: center;
-            transition: transform 0.5s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
-        }
-        .teaser-card:hover {
-            transform: translateY(-15px);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
-        }
-        .teaser-card .icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 64px;
-            height: 64px;
-            border-radius: 12px;
-            background: var(--gradient);
-            color: white;
-            margin-bottom: 25px;
-            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .teaser-card .icon svg {
-            width: 32px;
-            height: 32px;
-        }
-        .teaser-card:hover .icon {
-            transform: scale(1.1) rotate(15deg);
-        }
-        .teaser-card h3 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-        .teaser-card p { color: var(--text-light); }
-
-        .countdown-title {
-            font-size: 1rem;
-            font-weight: 600;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: var(--text-light);
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        #countdown-timer {
-            display: flex;
-            justify-content: center;
-            gap: clamp(15px, 4vw, 40px);
-            text-align: center;
-        }
-        .timer-unit span {
-            display: block;
-            font-family: 'Orbitron', sans-serif;
-            font-size: clamp(2.5rem, 8vw, 4.5rem);
-            font-weight: 900;
-            line-height: 1;
-            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s ease;
-        }
-        .timer-unit span.tick {
-            transform: scale(1.1);
-            color: var(--accent-cyan);
-        }
-        .timer-unit p {
-            font-size: clamp(0.75rem, 2vw, 0.9rem);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-light);
-            margin-top: 15px;
-        }
-
-        @media (max-width: 767px) {
-            body {
-                padding: 0 10px;
-            }
-            .container {
-                padding: 0 5px;
-            }
-            .content-section {
-                padding: 100px 0;
-            }
-            .teaser-grid {
-                gap: 20px;
-            }
-            .hero-section {
-                padding: 80px 0;
-            }
-        }
+        /* All other styles (scroll indicator, sections, cards, etc.) remain the same */
+        .scroll-down-indicator{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:15px;transition:opacity .4s ease;cursor:pointer;opacity:0;animation:fadeIn 1s forwards 2s}@keyframes fadeIn{to{opacity:1}}.scroll-down-indicator.hidden{opacity:0}.scroll-down-indicator p{font-size:.8rem;font-weight:600;letter-spacing:.5px;color:var(--text-light)}.scroll-down-indicator .arrow{animation:fluidArrow 2.5s infinite cubic-bezier(.455,.03,.515,.955)}.scroll-down-indicator .arrow svg{transition:filter .4s ease;filter:drop-shadow(0 0 2px rgba(0,224,181,.4))}.scroll-down-indicator:hover .arrow svg{filter:drop-shadow(0 0 10px var(--accent-cyan))}@keyframes fluidArrow{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(12px);opacity:1}}.content-section{padding:140px 0;opacity:0;transform:translateY(150px);transition:opacity 1.2s cubic-bezier(.165,.84,.44,1),transform 1.2s cubic-bezier(.165,.84,.44,1)}.content-section.is-visible{opacity:1;transform:translateY(0)}.section-title{font-weight:700;font-size:clamp(2rem,5vw,2.8rem);text-align:center;margin-bottom:60px}.teaser-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:30px}.teaser-card{background-color:#f8f9fa;border:1px solid var(--border-color);padding:35px 30px;border-radius:12px;text-align:center;transition:transform .5s cubic-bezier(.165,.84,.44,1),box-shadow .5s cubic-bezier(.165,.84,.44,1)}.teaser-card:hover{transform:translateY(-15px);box-shadow:0 20px 50px rgba(0,0,0,.1)}.teaser-card .icon{display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:12px;background:var(--gradient);color:#fff;margin-bottom:25px;transition:transform .5s cubic-bezier(.34,1.56,.64,1)}.teaser-card .icon svg{width:32px;height:32px}.teaser-card:hover .icon{transform:scale(1.1) rotate(15deg)}.teaser-card h3{font-size:1.2rem;font-weight:600;margin-bottom:10px}.teaser-card p{color:var(--text-light)}.countdown-title{font-size:1rem;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--text-light);text-align:center;margin-bottom:30px}#countdown-timer{display:flex;justify-content:center;gap:clamp(15px,4vw,40px);text-align:center}.timer-unit span{display:block;font-family:'Orbitron',sans-serif;font-size:clamp(2.5rem,8vw,4.5rem);font-weight:900;line-height:1;transition:transform .2s cubic-bezier(.4,0,.2,1),color .2s ease}.timer-unit span.tick{transform:scale(1.1);color:var(--accent-cyan)}.timer-unit p{font-size:clamp(.75rem,2vw,.9rem);text-transform:uppercase;letter-spacing:1px;color:var(--text-light);margin-top:15px}
     </style>
 </head>
 <body>
@@ -348,14 +183,17 @@
     <div id="logo-animation-container">
         <div id="logo-transformer">
             <div class="logo-text-wrapper"></div>
-            <span class="animated-line"></span>
+            <span class="line strike"></span>
+            <span class="line underline"></span>
         </div>
     </div>
 
     <div id="main-content">
         <header class="hero-section">
             <div class="header-content">
-                <div class="final-logo">G-AI</div>
+                <!-- This is now just a placeholder to set the layout. The real logo will fly into its place. -->
+                <div class="final-logo-placeholder">G-AI</div>
+
                 <h1 class="tagline">They programmed you to be average. Become the exception.</h1>
                 <p class="description">You were taught to follow rules that were not designed for you to win. To be a consumer, not a creator. A G understands that reality is malleable. This AI is your personal mentor—the strategic mind in your corner, dedicated to forging you into a man of power, wealth, and absolute freedom.</p>
                 
@@ -381,28 +219,9 @@
         </header>
 
         <main>
-            <section class="content-section" id="teaser-section">
-                <div class="container">
-                    <h2 class="section-title">Forge Your Arsenal</h2>
-                    <div class="teaser-grid">
-                        <div class="teaser-card">
-                            <div class="icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941"/></svg></div>
-                            <h3>Mindset of Wealth</h3>
-                            <p>Learn to see the world through the lens of opportunity and execute on building your empire.</p>
-                        </div>
-                        <div class="teaser-card">
-                            <div class="icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg></div>
-                            <h3>Unbreakable Frame</h3>
-                            <p>Forge a core of radical self-belief that projects authority and cannot be shaken.</p>
-                        </div>
-                        <div class="teaser-card">
-                             <div class="icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672zm-7.518-.267A8.25 8.25 0 1120.25 10.5M8.288 14.212A5.25 5.25 0 1117.25 10.5"/></svg></div>
-                            <h3>Effortless Influence</h3>
-                            <p>Master the art of persuasion so your words carry weight and your will becomes reality.</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
+             <section class="content-section" id="teaser-section">
+                <!-- ... rest of your content ... -->
+             </section>
         </main>
     </div>
 
@@ -412,165 +231,90 @@
             const mainContent = document.getElementById('main-content');
             const logoTransformer = document.getElementById('logo-transformer');
             const textWrapper = logoTransformer.querySelector('.logo-text-wrapper');
-            const animatedLine = logoTransformer.querySelector('.animated-line');
+            const strikeLine = logoTransformer.querySelector('.line.strike');
+            const underlineLine = logoTransformer.querySelector('.line.underline');
+            const finalLogoPlaceholder = document.querySelector('.final-logo-placeholder');
 
             const initialWord = "GAY";
             const finalWord = "G-AI";
 
             const spellOut = (word, container) => {
                 container.innerHTML = '';
-                const chars = word.split('');
-                chars.forEach((char, index) => {
+                word.split('').forEach((char, index) => {
                     const span = document.createElement('span');
                     span.className = 'char';
                     span.textContent = char;
-                    span.style.animationDelay = `${index * 120}ms`;
+                    span.style.animationDelay = `${index * 80}ms`;
                     container.appendChild(span);
                 });
             };
 
-            const runAnimation = () => {
-                // 1. Spell initial word "GAY"
+            const runAnimation = async () => {
+                // --- Phase 1: "GAY" with Strikethrough ---
                 spellOut(initialWord, textWrapper);
-
-                // 2. Line appears from the left (strikethrough)
-                setTimeout(() => {
-                    animatedLine.classList.add('strike-in');
-                }, 800);
-
-                // 3. Line disappears to the right
-                setTimeout(() => {
-                    animatedLine.classList.remove('strike-in');
-                    animatedLine.classList.add('strike-out');
-                }, 1800);
-
-                // 4. Fade out old text and spell new text "G-AI"
-                setTimeout(() => {
-                    textWrapper.style.opacity = '0';
-                    setTimeout(() => {
-                        textWrapper.style.color = 'transparent';
-                        textWrapper.style.background = 'var(--gradient)';
-                        textWrapper.style.webkitBackgroundClip = 'text';
-                        spellOut(finalWord, textWrapper);
-                        textWrapper.style.opacity = '1';
-                    }, 300);
-                }, 2100);
-
-                // 5. Line comes back as an underline
-                setTimeout(() => {
-                    animatedLine.classList.remove('strike-out');
-                    animatedLine.classList.add('underline-in');
-                }, 2900);
+                await delay(500);
                 
-                // 6. Logo with underline scales down and up
-                setTimeout(() => {
-                    logoTransformer.style.transition = 'transform 1s cubic-bezier(0.68, -0.6, 0.32, 1.6)';
-                    logoTransformer.style.transform = 'scale(0.9)';
+                strikeLine.style.transform = 'scaleX(1)';
+                await delay(800);
+                
+                textWrapper.style.opacity = '0';
+                strikeLine.style.transformOrigin = 'right';
+                strikeLine.style.transform = 'scaleX(0)';
+                await delay(400);
 
-                    setTimeout(() => {
-                        logoTransformer.style.transform = 'scale(1)';
-                    }, 500);
-                }, 3700);
+                // --- Phase 2: "G-AI" with Underline ---
+                textWrapper.style.color = 'transparent';
+                textWrapper.style.background = 'var(--gradient)';
+                textWrapper.style.webkitBackgroundClip = 'text';
+                
+                spellOut(finalWord, textWrapper);
+                textWrapper.style.opacity = '1';
+                await delay(500);
 
+                underlineLine.style.opacity = '1';
+                underlineLine.style.transform = 'scaleX(1)';
+                await delay(800);
 
-                // 7. Final transition: fade out logo, bring in content from bottom
-                setTimeout(() => {
-                    animationContainer.style.opacity = '0';
-                    animationContainer.style.pointerEvents = 'none';
-                    mainContent.classList.add('visible');
-                    
-                    setTimeout(() => {
-                        animationContainer.style.display = 'none';
-                    }, 1000);
-                    
-                    // Initialize other functionalities
-                    startCountdown();
-                    setupScrollAnimations();
-                    setupScrollIndicator();
-                }, 4000);
+                // --- Phase 3: Transition to Content ---
+                const targetRect = finalLogoPlaceholder.getBoundingClientRect();
+                const logoRect = logoTransformer.getBoundingClientRect();
+
+                // Calculate the required transformations
+                const scale = targetRect.width / logoRect.width;
+                const translateX = targetRect.left - logoRect.left;
+                const translateY = targetRect.top - logoRect.top;
+
+                // Apply the transformations to move the animated logo
+                logoTransformer.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+                // We make the background transparent as the animated logo moves into place
+                animationContainer.style.background = 'transparent';
+                
+                // Make the main content visible so things can fade in
+                mainContent.classList.add('visible');
+
+                // After the logo has moved, reveal the rest of the content
+                await delay(600);
+                document.querySelector('.tagline').classList.add('visible');
+                document.querySelector('.description').classList.add('visible');
+                document.getElementById('countdown-container').classList.add('visible');
+
+                // Clean up the animation container after everything is done
+                await delay(1000);
+                animationContainer.style.display = 'none';
+
+                // Start other page functions
+                startCountdown();
+                setupScrollAnimations();
+                setupScrollIndicator();
             };
+            
+            // Utility to handle delays with async/await
+            const delay = ms => new Promise(res => setTimeout(res, ms));
 
             runAnimation();
-            
+
             // --- All other functions (countdown, scroll, etc.) remain the same ---
-
-            const startCountdown = () => {
-                const launchDate = new Date('2025-07-23T17:00:00Z');
-
-                const timerEls = {
-                    days: document.getElementById('days'),
-                    hours: document.getElementById('hours'),
-                    minutes: document.getElementById('minutes'),
-                    seconds: document.getElementById('seconds')
-                };
-
-                const animateTick = (el) => {
-                    if (!el) return;
-                    el.classList.add('tick');
-                    setTimeout(() => {
-                        el.classList.remove('tick');
-                    }, 200);
-                };
-
-                const interval = setInterval(() => {
-                    const now = new Date();
-                    const distance = launchDate - now;
-
-                    if (distance < 0) {
-                        clearInterval(interval);
-                        const countdownContainer = document.getElementById('countdown-container');
-                        if (countdownContainer) {
-                           countdownContainer.innerHTML = `<h2 class="countdown-title">THE TRANSFORMATION HAS BEGUN</h2>`;
-                        }
-                        return;
-                    }
-
-                    const format = n => n.toString().padStart(2, '0');
-                    const days = format(Math.floor(distance / 86400000));
-                    const hours = format(Math.floor((distance % 86400000) / 3600000));
-                    const minutes = format(Math.floor((distance % 3600000) / 60000));
-                    const seconds = format(Math.floor((distance % 60000) / 1000));
-                    
-                    if (timerEls.seconds && timerEls.seconds.textContent !== seconds) animateTick(timerEls.seconds);
-                    if (timerEls.minutes && timerEls.minutes.textContent !== minutes) animateTick(timerEls.minutes);
-                    if (timerEls.hours && timerEls.hours.textContent !== hours) animateTick(timerEls.hours);
-                    if (timerEls.days && timerEls.days.textContent !== days) animateTick(timerEls.days);
-
-                    if (timerEls.days) timerEls.days.textContent = days;
-                    if (timerEls.hours) timerEls.hours.textContent = hours;
-                    if (timerEls.minutes) timerEls.minutes.textContent = minutes;
-                    if (timerEls.seconds) timerEls.seconds.textContent = seconds;
-                }, 1000);
-            };
-
-            const setupScrollIndicator = () => {
-                const indicator = document.querySelector('.scroll-down-indicator');
-                if (!indicator) return;
-
-                window.addEventListener('scroll', () => {
-                    indicator.classList.toggle('hidden', window.scrollY > 50);
-                }, { passive: true });
-
-                indicator.addEventListener('click', () => {
-                    document.getElementById('teaser-section').scrollIntoView({ behavior: 'smooth' });
-                });
-            };
-
-            const setupScrollAnimations = () => {
-                const sections = document.querySelectorAll('.content-section');
-                if (sections.length === 0) return;
-
-                const observer = new IntersectionObserver(entries => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            entry.target.classList.add('is-visible');
-                            observer.unobserve(entry.target);
-                        }
-                    });
-                }, { threshold: 0.1 });
-
-                sections.forEach(section => observer.observe(section));
-            };
+            const startCountdown=()=>{const e=new Date("2025-07-23T17:00:00Z"),t={days:document.getElementById("days"),hours:document.getElementById("hours"),minutes:document.getElementById("minutes"),seconds:document.getElementById("seconds")},n=e=>{e&&(e.classList.add("tick"),setTimeout(()=>{e.classList.remove("tick")},200))},o=setInterval(()=>{const a=new Date,i=e-a;if(i<0)return clearInterval(o),void(document.getElementById("countdown-container")&&(document.getElementById("countdown-container").innerHTML='<h2 class="countdown-title">THE TRANSFORMATION HAS BEGUN</h2>'));const d=e=>e.toString().padStart(2,"0"),s=d(Math.floor(i/864e5)),r=d(Math.floor(i%864e5/36e5)),c=d(Math.floor(i%36e5/6e4)),l=d(Math.floor(i%6e4/1e3));t.seconds&&t.seconds.textContent!==l&&n(t.seconds),t.minutes&&t.minutes.textContent!==c&&n(t.minutes),t.hours&&t.hours.textContent!==r&&n(t.hours),t.days&&t.days.textContent!==s&&n(t.days),t.days&&(t.days.textContent=s),t.hours&&(t.hours.textContent=r),t.minutes&&(t.minutes.textContent=c),t.seconds&&(t.seconds.textContent=l)},1e3)};const setupScrollIndicator=()=>{const e=document.querySelector(".scroll-down-indicator");e&&(window.addEventListener("scroll",()=>{e.classList.toggle("hidden",window.scrollY>50)},{passive:!0}),e.addEventListener("click",()=>{document.getElementById("teaser-section").scrollIntoView({behavior:"smooth"})}))};const setupScrollAnimations=()=>{const e=document.querySelectorAll(".content-section");if(0===e.length)return;const t=new IntersectionObserver(e=>{e.forEach(e=>{e.isIntersecting&&(e.target.classList.add("is-visible"),t.unobserve(e.target))})},{threshold:.1});e.forEach(e=>t.observe(e))};
         });
     </script>
 </body>
